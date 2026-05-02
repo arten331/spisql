@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+// Package users.v1 is a tiny example service used by the spisql
+// grpc-gateway e2e tests. It is NOT part of the public spisql API.
+//
+// The service has a single List RPC whose request embeds
+// spisql.v1.ListQuery — exactly the shape end users are expected to
+// adopt for their own list endpoints.
+package users.v1;
+
+import "google/api/annotations.proto";
+import "proto/spisqlv1/list.proto";
+
+option go_package = "github.com/arten331/spisql/tests/grpcgateway/proto/usersv1;usersv1";
+
+service Users {
+  rpc List(ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = {
+      get: "/v1/users"
+    };
+  }
+}
+
+message ListUsersRequest {
+  spisql.v1.ListQuery query = 1;
+}
+
+message User {
+  int64 id = 1;
+  string name = 2;
+  string email = 3;
+  string status = 4;
+}
+
+message ListUsersResponse {
+  repeated User items = 1;
+  uint64 total = 2;
+}

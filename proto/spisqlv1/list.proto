@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+// Package spisql.v1 is the canonical wire schema for spisql list queries.
+//
+// Embed ListQuery in your own request messages alongside business-specific
+// fields. The shape is grpc-gateway-friendly: `filter` is a single
+// URL-parameter-shaped string the gateway proxies through verbatim, while
+// `sort`, `limit`, and `offset` map onto typed proto fields.
+//
+// HTTP wire (via grpc-gateway):
+//
+//   GET /v1/users?filter=name%3Dvasya%26id%5Bin%5D%3D1&sort=-created_at&limit=25
+//
+// See github.com/arten331/spisql for parser semantics.
+package spisql.v1;
+
+option go_package = "github.com/arten331/spisql/proto/spisqlv1;spisqlv1";
+
+// ListQuery carries the four spisql wire-level parameters. Embed it in
+// your own request messages; the server-side handler converts it via
+// transport/grpc.Parse into a *spisql.Query.
+message ListQuery {
+  // Stripe-style flat bracket-form filter expression — a query-string
+  // fragment. The client URL-encodes it once so it survives as a single
+  // HTTP query parameter (e.g. "name=vasya&id[in]=1&status[ne]=deleted").
+  //
+  // See parser package for the full operator set.
+  string filter = 1;
+
+  // Comma-separated sort list, with `-` prefix marking DESC. Example:
+  // "-created_at,name". Empty means no explicit ordering.
+  string sort = 2;
+
+  // Page size. Server caps via parser.Options.MaxLimit (default 100).
+  // Zero means "use server default" (parser.Options.DefaultLimit, 10).
+  uint64 limit = 3;
+
+  // Number of rows to skip. Zero is the canonical first page.
+  uint64 offset = 4;
+}

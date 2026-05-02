@@ -1,0 +1,38 @@
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - errcheck       # неперехваченные ошибки
+    - govet          # стандартный vet (shadow, printf, lostcancel, ...)
+    - staticcheck    # широкий набор bug-checks (SA*)
+    - ineffassign    # присваивания, которые не читаются
+    - unused         # мёртвый код (функции/типы/переменные)
+    - bodyclose      # незакрытый http.Response.Body
+    - rowserrcheck   # пропущенный sql.Rows.Err()
+    - sqlclosecheck  # незакрытые sql.Rows / sql.Stmt
+    - errorlint      # некорректная работа с обёрнутыми ошибками (== вместо errors.Is, %v вместо %w)
+    - nilerr         # `return nil` когда err != nil
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: false
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment  # косметика, не баг
+        - shadow          # слишком много false positives на idiomatic Go
+
+  exclusions:
+    rules:
+      # В тестах допускаем неперехваченные ошибки и type assertions без ok —
+      # тестовый код падает явно, а require/assert обычно делают это за нас.
+      - path: _test\.go
+        linters:
+          - errcheck
+          - errorlint
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

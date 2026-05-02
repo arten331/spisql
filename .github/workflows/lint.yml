@@ -1,0 +1,50 @@
+name: lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: lint-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  golangci:
+    name: ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module: .
+          - module: adapter/bun
+          - module: adapter/goqu
+          - module: adapter/gorm
+          - module: adapter/mongo
+          - module: adapter/squirrel
+          - module: examples/http-postgres
+          - module: proto/spisqlv1
+          - module: transport/echo
+          - module: transport/fiber
+          - module: transport/gin
+          - module: tests/integration
+            args: --build-tags=integration
+          - module: tests/grpcgateway
+            args: --build-tags=integration
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: ${{ matrix.module }}/go.mod
+          cache: false
+
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: v2.6.2
+          working-directory: ${{ matrix.module }}
+          args: ${{ matrix.args }}
